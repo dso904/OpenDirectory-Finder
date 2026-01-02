@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Target, Scale, Maximize, ChevronDown, Check } from "lucide-react";
+import { Target, Scale, Maximize, Clock, ChevronDown, Check } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -18,6 +18,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
     Target,
     Scale,
     Maximize,
+    Clock,
 };
 
 interface SearchModeSelectorProps {
@@ -43,6 +44,7 @@ export function SearchModeSelector({ value, onChange }: SearchModeSelectorProps)
         precise: "text-emerald-400",
         balanced: "text-amber-400",
         broad: "text-blue-400",
+        fresh: "text-cyan-400",
     };
 
     return (

@@ -200,6 +200,12 @@ export const SEARCH_MODES = {
         description: "More results, may include noise",
         icon: "Maximize",
     },
+    fresh: {
+        id: "fresh" as const,
+        label: "Fresh",
+        description: "Recent uploads only (past week)",
+        icon: "Clock",
+    },
 };
 
 // Date filter configurations

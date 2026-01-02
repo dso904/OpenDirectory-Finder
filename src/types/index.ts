@@ -42,7 +42,7 @@ export interface SearchConfig {
 export type Theme = 'light' | 'dark' | 'system';
 
 // Search mode type
-export type SearchMode = 'precise' | 'balanced' | 'broad';
+export type SearchMode = 'precise' | 'balanced' | 'broad' | 'fresh';
 
 // Date filter type
 export type DateFilter = 'any' | 'past_day' | 'past_week' | 'past_month' | 'past_year';

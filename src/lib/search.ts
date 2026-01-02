@@ -69,8 +69,8 @@ export function buildSearchQuery(
         parts.push(DIRECTORY_PATTERNS.primary);
         parts.push(DIRECTORY_PATTERNS.secondary);
         parts.push(DIRECTORY_PATTERNS.quality);
-    } else if (mode === "balanced") {
-        // Balanced: Primary + secondary patterns
+    } else if (mode === "balanced" || mode === "fresh") {
+        // Balanced/Fresh: Primary + secondary patterns
         parts.push(DIRECTORY_PATTERNS.primary);
         parts.push(DIRECTORY_PATTERNS.secondary);
     } else {
@@ -125,9 +125,14 @@ export function buildSearchUrl(
     const dorkQuery = buildSearchQuery(query, fileType, options);
     let url = `${engine.url}${encodeURIComponent(dorkQuery)}`;
 
+    // Determine effective date filter (Fresh mode auto-applies past_week)
+    const effectiveDateFilter = options?.mode === "fresh"
+        ? "past_week"
+        : (options?.dateFilter || "any");
+
     // Add date filter for Google (and engines that support tbs parameter)
-    if (options?.dateFilter && options.dateFilter !== "any") {
-        const dateConfig = DATE_FILTERS[options.dateFilter];
+    if (effectiveDateFilter !== "any") {
+        const dateConfig = DATE_FILTERS[effectiveDateFilter];
         if (dateConfig?.googleParam) {
             // Google uses tbs parameter for time-based search
             if (engine.id === "google") {
@@ -201,4 +206,33 @@ export function executeSearch(
             error: `Search failed: ${error instanceof Error ? error.message : "Unknown error"}`,
         };
     }
+}
+
+/**
+ * Get a preview of the search query that will be executed
+ */
+export function getQueryPreview(
+    query: string,
+    fileType: FileType,
+    options?: SearchOptions
+): { query: string; dateFilter: string } {
+    const dorkQuery = buildSearchQuery(query, fileType, options);
+
+    // Determine effective date filter for display
+    const effectiveDateFilter = options?.mode === "fresh"
+        ? "past_week"
+        : (options?.dateFilter || "any");
+
+    const dateLabels: Record<string, string> = {
+        any: "Any time",
+        past_day: "Past 24 hours",
+        past_week: "Past week",
+        past_month: "Past month",
+        past_year: "Past year",
+    };
+
+    return {
+        query: dorkQuery,
+        dateFilter: dateLabels[effectiveDateFilter] || "Any time",
+    };
 }

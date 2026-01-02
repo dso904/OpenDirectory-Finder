@@ -8,6 +8,7 @@ import { SearchEngineSelector, DEFAULT_ENGINE } from "./SearchEngineSelector";
 import { SearchModeSelector } from "./SearchModeSelector";
 import { DateFilterSelector } from "./DateFilterSelector";
 import { MultiEngineSelector } from "./MultiEngineSelector";
+import { QueryPreview } from "./QueryPreview";
 import { executeSearch } from "@/lib/search";
 import { SEARCH_ENGINES, DEFAULT_SEARCH_OPTIONS } from "@/lib/config";
 import type { FileType, SearchEngine, SearchMode, DateFilter, SearchOptions } from "@/types";
@@ -253,6 +254,14 @@ export function SearchForm() {
                             </motion.div>
                         )}
                     </AnimatePresence>
+
+                    {/* Query Preview */}
+                    <QueryPreview
+                        query={query}
+                        fileType={fileType}
+                        searchOptions={searchOptions}
+                        engine={engine.name}
+                    />
                 </div>
             </motion.div>
 
