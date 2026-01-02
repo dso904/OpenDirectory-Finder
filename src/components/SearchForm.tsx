@@ -1,12 +1,16 @@
 import { useState, useCallback, useEffect, useRef, FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Sparkles, AlertCircle, Loader2, Command } from "lucide-react";
+import { Search, Sparkles, AlertCircle, Loader2, Command, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FileTypeSelector, DEFAULT_FILE_TYPE } from "./FileTypeSelector";
 import { SearchEngineSelector, DEFAULT_ENGINE } from "./SearchEngineSelector";
+import { SearchModeSelector } from "./SearchModeSelector";
+import { DateFilterSelector } from "./DateFilterSelector";
+import { MultiEngineSelector } from "./MultiEngineSelector";
 import { executeSearch } from "@/lib/search";
-import type { FileType, SearchEngine } from "@/types";
+import { SEARCH_ENGINES, DEFAULT_SEARCH_OPTIONS } from "@/lib/config";
+import type { FileType, SearchEngine, SearchMode, DateFilter, SearchOptions } from "@/types";
 
 // Placeholder examples for typing animation
 const PLACEHOLDERS = [
@@ -27,7 +31,11 @@ export function SearchForm() {
     const [error, setError] = useState<string | null>(null);
     const [placeholderIndex, setPlaceholderIndex] = useState(0);
     const [isFocused, setIsFocused] = useState(false);
+    const [showAdvanced, setShowAdvanced] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
+
+    // Advanced search options
+    const [searchOptions, setSearchOptions] = useState<SearchOptions>(DEFAULT_SEARCH_OPTIONS);
 
     // Rotate placeholder text
     useEffect(() => {
@@ -51,6 +59,23 @@ export function SearchForm() {
         return () => document.removeEventListener("keydown", handleKeyDown);
     }, []);
 
+    // Handler updates
+    const handleModeChange = useCallback((mode: SearchMode) => {
+        setSearchOptions((prev) => ({ ...prev, mode }));
+    }, []);
+
+    const handleDateFilterChange = useCallback((dateFilter: DateFilter) => {
+        setSearchOptions((prev) => ({ ...prev, dateFilter }));
+    }, []);
+
+    const handleMultiEngineToggle = useCallback((enabled: boolean) => {
+        setSearchOptions((prev) => ({ ...prev, multiEngine: enabled }));
+    }, []);
+
+    const handleSelectedEnginesChange = useCallback((selectedEngines: string[]) => {
+        setSearchOptions((prev) => ({ ...prev, selectedEngines }));
+    }, []);
+
     const handleSubmit = useCallback(
         async (e: FormEvent) => {
             e.preventDefault();
@@ -63,15 +88,40 @@ export function SearchForm() {
             // Small delay for animation
             await new Promise((resolve) => setTimeout(resolve, 300));
 
-            const result = executeSearch(query, fileType, engine);
+            // Multi-engine search: open multiple tabs
+            if (searchOptions.multiEngine && searchOptions.selectedEngines.length > 1) {
+                let hasError = false;
 
-            if (!result.success) {
-                setError(result.error || "Search failed");
+                for (const engineId of searchOptions.selectedEngines) {
+                    const selectedEngine = SEARCH_ENGINES[engineId];
+                    if (selectedEngine) {
+                        const result = executeSearch(query, fileType, selectedEngine, searchOptions);
+                        if (!result.success) {
+                            hasError = true;
+                            setError(result.error || "Search failed");
+                            break;
+                        }
+                        // Small delay between opening tabs to avoid blocking
+                        await new Promise((resolve) => setTimeout(resolve, 200));
+                    }
+                }
+
+                if (!hasError) {
+                    // Success message for multi-engine
+                    setError(null);
+                }
+            } else {
+                // Single engine search
+                const result = executeSearch(query, fileType, engine, searchOptions);
+
+                if (!result.success) {
+                    setError(result.error || "Search failed");
+                }
             }
 
             setIsSearching(false);
         },
-        [query, fileType, engine, isSearching]
+        [query, fileType, engine, isSearching, searchOptions]
     );
 
     return (
@@ -97,70 +147,126 @@ export function SearchForm() {
                 }}
             >
                 {/* Glass background */}
-                <div className="relative flex flex-col md:flex-row gap-2 p-3 rounded-xl bg-background/80 backdrop-blur-xl border border-white/10">
-                    {/* Top row: Dropdowns */}
-                    <div className="flex gap-2 flex-wrap">
-                        <FileTypeSelector value={fileType} onChange={setFileType} />
-                        <SearchEngineSelector value={engine} onChange={setEngine} />
-                    </div>
-
-                    {/* Search input */}
-                    <div className="flex-1 flex gap-2">
-                        <div className="relative flex-1">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
-                            <Input
-                                ref={inputRef}
-                                type="search"
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                                onFocus={() => setIsFocused(true)}
-                                onBlur={() => setIsFocused(false)}
-                                placeholder={PLACEHOLDERS[placeholderIndex]}
-                                className="pl-12 pr-4 h-12 text-base bg-secondary/50 border-0 focus:ring-2 focus:ring-violet-500/50"
-                                autoComplete="off"
-                                autoCapitalize="off"
-                                spellCheck={false}
-                                required
-                                minLength={2}
-                                maxLength={500}
-                            />
+                <div className="relative flex flex-col gap-3 p-3 rounded-xl bg-background/80 backdrop-blur-xl border border-white/10">
+                    {/* Row 1: Main dropdowns */}
+                    <div className="flex flex-col md:flex-row gap-2">
+                        <div className="flex gap-2 flex-wrap">
+                            <FileTypeSelector value={fileType} onChange={setFileType} />
+                            {!searchOptions.multiEngine && (
+                                <SearchEngineSelector value={engine} onChange={setEngine} />
+                            )}
                         </div>
 
-                        {/* Search button */}
-                        <Button
-                            type="submit"
-                            variant="gradient"
-                            size="lg"
-                            disabled={isSearching || query.length < 2}
-                            className="min-w-[120px] h-12"
-                        >
-                            <AnimatePresence mode="wait" initial={false}>
-                                {isSearching ? (
-                                    <motion.div
-                                        key="loading"
-                                        initial={{ opacity: 0, scale: 0.8 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        exit={{ opacity: 0, scale: 0.8 }}
-                                        className="flex items-center gap-2"
-                                    >
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                        <span>Searching</span>
-                                    </motion.div>
-                                ) : (
-                                    <motion.div
-                                        key="search"
-                                        initial={{ opacity: 0, scale: 0.8 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        exit={{ opacity: 0, scale: 0.8 }}
-                                        className="flex items-center gap-2"
-                                    >
-                                        <Sparkles className="h-4 w-4" />
-                                        <span>Search</span>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </Button>
+                        {/* Search input */}
+                        <div className="flex-1 flex gap-2">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
+                                <Input
+                                    ref={inputRef}
+                                    type="search"
+                                    value={query}
+                                    onChange={(e) => setQuery(e.target.value)}
+                                    onFocus={() => setIsFocused(true)}
+                                    onBlur={() => setIsFocused(false)}
+                                    placeholder={PLACEHOLDERS[placeholderIndex]}
+                                    className="pl-12 pr-4 h-12 text-base bg-secondary/50 border-0 focus:ring-2 focus:ring-violet-500/50"
+                                    autoComplete="off"
+                                    autoCapitalize="off"
+                                    spellCheck={false}
+                                    required
+                                    minLength={2}
+                                    maxLength={500}
+                                />
+                            </div>
+
+                            {/* Search button */}
+                            <Button
+                                type="submit"
+                                variant="gradient"
+                                size="lg"
+                                disabled={isSearching || query.length < 2}
+                                className="min-w-[120px] h-12"
+                            >
+                                <AnimatePresence mode="wait" initial={false}>
+                                    {isSearching ? (
+                                        <motion.div
+                                            key="loading"
+                                            initial={{ opacity: 0, scale: 0.8 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0, scale: 0.8 }}
+                                            className="flex items-center gap-2"
+                                        >
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                            <span>Searching</span>
+                                        </motion.div>
+                                    ) : (
+                                        <motion.div
+                                            key="search"
+                                            initial={{ opacity: 0, scale: 0.8 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0, scale: 0.8 }}
+                                            className="flex items-center gap-2"
+                                        >
+                                            <Sparkles className="h-4 w-4" />
+                                            <span>Search</span>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </Button>
+                        </div>
                     </div>
+
+                    {/* Row 2: Advanced Options (collapsible) */}
+                    <div className="flex items-center justify-between">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowAdvanced(!showAdvanced)}
+                            className="text-xs text-muted-foreground hover:text-foreground gap-1.5"
+                        >
+                            <Settings2 className="h-3.5 w-3.5" />
+                            <span>Advanced Options</span>
+                            <motion.span
+                                animate={{ rotate: showAdvanced ? 180 : 0 }}
+                                transition={{ duration: 0.2 }}
+                            >
+                                ▾
+                            </motion.span>
+                        </Button>
+
+                        {/* Always-visible Multi-Engine toggle */}
+                        <MultiEngineSelector
+                            enabled={searchOptions.multiEngine}
+                            onToggle={handleMultiEngineToggle}
+                            selectedEngines={searchOptions.selectedEngines}
+                            onChange={handleSelectedEnginesChange}
+                        />
+                    </div>
+
+                    {/* Advanced Options Panel */}
+                    <AnimatePresence>
+                        {showAdvanced && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{ duration: 0.2 }}
+                                className="overflow-hidden"
+                            >
+                                <div className="flex flex-wrap gap-2 pt-2 border-t border-border/50">
+                                    <SearchModeSelector
+                                        value={searchOptions.mode}
+                                        onChange={handleModeChange}
+                                    />
+                                    <DateFilterSelector
+                                        value={searchOptions.dateFilter}
+                                        onChange={handleDateFilterChange}
+                                    />
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
             </motion.div>
 

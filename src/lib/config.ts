@@ -132,3 +132,67 @@ export const CONFIG: SearchConfig = {
 
 export const DEFAULT_FILE_TYPE = FILE_TYPES.all;
 export const DEFAULT_ENGINE = SEARCH_ENGINES.google;
+
+// Search mode configurations
+export const SEARCH_MODES = {
+    precise: {
+        id: "precise" as const,
+        label: "Precise",
+        description: "Fewer results, higher quality",
+        icon: "Target",
+    },
+    balanced: {
+        id: "balanced" as const,
+        label: "Balanced",
+        description: "Default, good balance",
+        icon: "Scale",
+    },
+    broad: {
+        id: "broad" as const,
+        label: "Broad",
+        description: "More results, may include noise",
+        icon: "Maximize",
+    },
+};
+
+// Date filter configurations
+export const DATE_FILTERS = {
+    any: {
+        id: "any" as const,
+        label: "Any Time",
+        description: "All results",
+        googleParam: undefined,
+    },
+    past_day: {
+        id: "past_day" as const,
+        label: "Past 24 Hours",
+        description: "Very recent",
+        googleParam: "qdr:d",
+    },
+    past_week: {
+        id: "past_week" as const,
+        label: "Past Week",
+        description: "Last 7 days",
+        googleParam: "qdr:w",
+    },
+    past_month: {
+        id: "past_month" as const,
+        label: "Past Month",
+        description: "Last 30 days",
+        googleParam: "qdr:m",
+    },
+    past_year: {
+        id: "past_year" as const,
+        label: "Past Year",
+        description: "Last 12 months",
+        googleParam: "qdr:y",
+    },
+};
+
+// Default search options
+export const DEFAULT_SEARCH_OPTIONS = {
+    mode: "balanced" as const,
+    dateFilter: "any" as const,
+    multiEngine: false,
+    selectedEngines: ["google"],
+};

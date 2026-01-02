@@ -1,5 +1,5 @@
-import { CONFIG } from "./config";
-import type { FileType, SearchEngine } from "@/types";
+import { CONFIG, DATE_FILTERS } from "./config";
+import type { FileType, SearchEngine, SearchOptions } from "@/types";
 
 /**
  * Sanitize user input to prevent XSS and normalize whitespace
@@ -40,7 +40,11 @@ export function validateQuery(query: string): { valid: boolean; error?: string }
 /**
  * Build the open directory search query with filters and exclusions
  */
-export function buildSearchQuery(query: string, fileType: FileType): string {
+export function buildSearchQuery(
+    query: string,
+    fileType: FileType,
+    options?: SearchOptions
+): string {
     const parts: string[] = [sanitizeInput(query)];
 
     // Add file extension filter if not "all"
@@ -51,6 +55,11 @@ export function buildSearchQuery(query: string, fileType: FileType): string {
     // Add "index of" pattern for directory listings
     parts.push('intitle:"index of"');
 
+    // Add "parent directory" for better results (based on search mode)
+    if (!options || options.mode !== "broad") {
+        parts.push('"parent directory"');
+    }
+
     // Exclude dynamic page types
     const excludeInurl = CONFIG.excludePatterns.inurl.join("|");
     parts.push(`-inurl:(${excludeInurl})`);
@@ -59,16 +68,23 @@ export function buildSearchQuery(query: string, fileType: FileType): string {
     const excludeSites = CONFIG.excludePatterns.sites.join("|");
     parts.push(`-inurl:(${excludeSites})`);
 
+    // Add stricter filters for precise mode
+    if (options?.mode === "precise") {
+        parts.push('"last modified"');
+        parts.push('"size"');
+    }
+
     return parts.join(" ");
 }
 
 /**
- * Build the final search URL
+ * Build the final search URL with date filters
  */
 export function buildSearchUrl(
     query: string,
     fileType: FileType,
-    engine: SearchEngine
+    engine: SearchEngine,
+    options?: SearchOptions
 ): string {
     const sanitizedQuery = sanitizeInput(query);
 
@@ -78,8 +94,47 @@ export function buildSearchUrl(
     }
 
     // Standard search engines use our dork query
-    const dorkQuery = buildSearchQuery(query, fileType);
-    return `${engine.url}${encodeURIComponent(dorkQuery)}`;
+    const dorkQuery = buildSearchQuery(query, fileType, options);
+    let url = `${engine.url}${encodeURIComponent(dorkQuery)}`;
+
+    // Add date filter for Google (and engines that support tbs parameter)
+    if (options?.dateFilter && options.dateFilter !== "any") {
+        const dateConfig = DATE_FILTERS[options.dateFilter];
+        if (dateConfig?.googleParam) {
+            // Google uses tbs parameter for time-based search
+            if (engine.id === "google") {
+                url += `&tbs=${dateConfig.googleParam}`;
+            }
+            // DuckDuckGo uses df parameter
+            else if (engine.id === "duckduckgo") {
+                const ddgMap: Record<string, string> = {
+                    "qdr:d": "d",
+                    "qdr:w": "w",
+                    "qdr:m": "m",
+                    "qdr:y": "y",
+                };
+                const ddgParam = ddgMap[dateConfig.googleParam];
+                if (ddgParam) {
+                    url += `&df=${ddgParam}`;
+                }
+            }
+            // Brave uses freshness parameter
+            else if (engine.id === "brave") {
+                const braveMap: Record<string, string> = {
+                    "qdr:d": "pd",
+                    "qdr:w": "pw",
+                    "qdr:m": "pm",
+                    "qdr:y": "py",
+                };
+                const braveParam = braveMap[dateConfig.googleParam];
+                if (braveParam) {
+                    url += `&freshness=${braveParam}`;
+                }
+            }
+        }
+    }
+
+    return url;
 }
 
 /**
@@ -88,7 +143,8 @@ export function buildSearchUrl(
 export function executeSearch(
     query: string,
     fileType: FileType,
-    engine: SearchEngine
+    engine: SearchEngine,
+    options?: SearchOptions
 ): { success: boolean; error?: string; url?: string } {
     const validation = validateQuery(query);
 
@@ -96,7 +152,7 @@ export function executeSearch(
         return { success: false, error: validation.error };
     }
 
-    const url = buildSearchUrl(query, fileType, engine);
+    const url = buildSearchUrl(query, fileType, engine, options);
 
     try {
         const newWindow = window.open(url, "_blank", "noopener,noreferrer");
