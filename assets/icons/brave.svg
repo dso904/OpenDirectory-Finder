@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <linearGradient id="braveGrad" x1="24" y1="4" x2="24" y2="44" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#FB542B"/>
+    <stop offset="1" stop-color="#FF7A1F"/>
+  </linearGradient>
+  <path fill="url(#braveGrad)" d="M40,16l2-6l-6-2c-2-2-5-4-12-4S14,6,12,8L6,10l2,6l-2,6v8c0,12,18,16,18,16s18-4,18-16v-8L40,16z"/>
+  <path fill="#fff" d="M24,12l8,4v8c0,6-8,10-8,10s-8-4-8-10v-8L24,12z"/>
+</svg>
