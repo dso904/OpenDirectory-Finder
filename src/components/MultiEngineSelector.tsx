@@ -73,6 +73,7 @@ export function MultiEngineSelector({
         <div className="flex items-center gap-2">
             {/* Toggle button */}
             <Button
+                type="button"
                 variant={enabled ? "gradient" : "glass"}
                 size="sm"
                 onClick={handleToggleMulti}
@@ -98,7 +99,7 @@ export function MultiEngineSelector({
                     >
                         <DropdownMenu open={open} onOpenChange={setOpen}>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="glass" size="sm" className="text-xs">
+                                <Button type="button" variant="glass" size="sm" className="text-xs">
                                     Select Engines
                                 </Button>
                             </DropdownMenuTrigger>

@@ -55,83 +55,84 @@
   * {
     @apply border-border;
   }
-  
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
 }
 
 @layer utilities {
+
   /* Glass morphism effect */
   .glass {
     @apply bg-white/5 backdrop-blur-xl border border-white/10;
   }
-  
+
   .glass-hover {
     @apply hover:bg-white/10 hover:border-white/20 transition-all duration-300;
   }
-  
+
   /* Premium gradient backgrounds */
   .gradient-primary {
     @apply bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600;
   }
-  
+
   .gradient-glow {
     @apply bg-gradient-to-r from-violet-500/20 via-purple-500/20 to-indigo-500/20;
   }
-  
+
   /* Animated gradient border */
   .gradient-border {
     position: relative;
     background: linear-gradient(var(--background), var(--background)) padding-box,
-                linear-gradient(135deg, #8b5cf6, #6366f1, #8b5cf6) border-box;
+      linear-gradient(135deg, #8b5cf6, #6366f1, #8b5cf6) border-box;
     border: 2px solid transparent;
   }
-  
+
   /* Glow effects */
   .glow-sm {
     box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
   }
-  
+
   .glow-md {
     box-shadow: 0 0 40px rgba(139, 92, 246, 0.4);
   }
-  
+
   .glow-lg {
     box-shadow: 0 0 60px rgba(139, 92, 246, 0.5);
   }
-  
+
   /* Text gradient */
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-purple-400 to-indigo-400;
   }
-  
+
   /* Shimmer animation for loading */
   .shimmer {
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
     background-size: 200% 100%;
     animation: shimmer 2s linear infinite;
   }
-  
+
   /* Focus ring */
   .focus-ring {
     @apply focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:ring-offset-2 focus:ring-offset-background;
   }
-  
+
   /* Smooth scrollbar */
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--muted)) transparent;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar {
     width: 6px;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar-track {
     background: transparent;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar-thumb {
     background-color: hsl(var(--muted));
     border-radius: 3px;
@@ -140,9 +141,12 @@
 
 /* Custom animations */
 @keyframes pulse-glow {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
   }
+
   50% {
     box-shadow: 0 0 40px rgba(139, 92, 246, 0.6);
   }
@@ -165,4 +169,66 @@
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Focus visible styles for keyboard navigation */
+.focus-visible-ring {
+  @apply outline-none ring-2 ring-violet-500 ring-offset-2 ring-offset-background;
+}
+
+/* Only apply focus ring to elements without custom focus styles */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible:not(input):not(textarea):not(select) {
+  @apply outline-none ring-2 ring-violet-500/50 ring-offset-1 ring-offset-background;
+}
+
+/* Loading skeleton animation */
+.skeleton {
+  @apply bg-gradient-to-r from-secondary/50 via-secondary to-secondary/50 bg-[length:200%_100%] animate-pulse;
+}
+
+/* Screen reader only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.not-sr-only {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Touch-friendly tap targets for mobile */
+@layer utilities {
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
 }

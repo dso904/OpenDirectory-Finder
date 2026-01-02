@@ -128,10 +128,12 @@ export function SearchForm() {
     return (
         <motion.form
             onSubmit={handleSubmit}
-            className="w-full max-w-4xl mx-auto"
+            className="w-full max-w-4xl mx-auto px-2 sm:px-0"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
+            role="search"
+            aria-label="Open Directory Search"
         >
             {/* Search Container */}
             <motion.div
@@ -159,24 +161,27 @@ export function SearchForm() {
                         </div>
 
                         {/* Search input */}
-                        <div className="flex-1 flex gap-2">
+                        <div className="flex-1 flex flex-col sm:flex-row gap-2">
                             <div className="relative flex-1">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" aria-hidden="true" />
                                 <Input
                                     ref={inputRef}
                                     type="search"
+                                    id="search-input"
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
                                     onFocus={() => setIsFocused(true)}
                                     onBlur={() => setIsFocused(false)}
                                     placeholder={PLACEHOLDERS[placeholderIndex]}
-                                    className="pl-12 pr-4 h-12 text-base bg-secondary/50 border-0 focus:ring-2 focus:ring-violet-500/50"
+                                    className="pl-12 pr-4 h-12 text-base bg-secondary/50 border-0 focus:ring-2 focus:ring-violet-500/50 focus:ring-offset-0 focus-visible:ring-violet-500/50 focus-visible:ring-offset-0 transition-shadow duration-200"
                                     autoComplete="off"
                                     autoCapitalize="off"
                                     spellCheck={false}
                                     required
                                     minLength={2}
                                     maxLength={500}
+                                    aria-label="Search query"
+                                    aria-describedby="search-hint"
                                 />
                             </div>
 
@@ -186,16 +191,18 @@ export function SearchForm() {
                                 variant="gradient"
                                 size="lg"
                                 disabled={isSearching || query.length < 2}
-                                className="min-w-[120px] h-12"
+                                className="w-full sm:w-auto min-w-[120px] h-12 transition-all duration-200"
+                                aria-label={isSearching ? "Searching..." : "Search open directories"}
+                                aria-busy={isSearching}
                             >
                                 {isSearching ? (
-                                    <span className="flex items-center gap-2">
-                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                    <span className="flex items-center justify-center gap-2">
+                                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                                         <span>Searching</span>
                                     </span>
                                 ) : (
-                                    <span className="flex items-center gap-2">
-                                        <Sparkles className="h-4 w-4" />
+                                    <span className="flex items-center justify-center gap-2">
+                                        <Sparkles className="h-4 w-4" aria-hidden="true" />
                                         <span>Search</span>
                                     </span>
                                 )}
@@ -273,8 +280,10 @@ export function SearchForm() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         className="flex items-center gap-2 mt-3 px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm"
+                        role="alert"
+                        aria-live="polite"
                     >
-                        <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                        <AlertCircle className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
                         <span>{error}</span>
                     </motion.div>
                 )}
@@ -282,13 +291,14 @@ export function SearchForm() {
 
             {/* Keyboard hint */}
             <motion.div
-                className="flex items-center justify-center gap-2 mt-4 text-sm text-muted-foreground"
+                id="search-hint"
+                className="hidden sm:flex items-center justify-center gap-2 mt-4 text-sm text-muted-foreground"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
             >
-                <kbd className="inline-flex items-center gap-1 px-2 py-1 rounded bg-secondary/50 border border-border text-xs">
-                    <Command className="h-3 w-3" />
+                <kbd className="inline-flex items-center gap-1 px-2 py-1 rounded bg-secondary/50 border border-border text-xs font-mono">
+                    <Command className="h-3 w-3" aria-hidden="true" />
                     <span>K</span>
                 </kbd>
                 <span>to focus search</span>
