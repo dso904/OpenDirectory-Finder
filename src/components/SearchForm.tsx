@@ -187,31 +187,17 @@ export function SearchForm() {
                                 disabled={isSearching || query.length < 2}
                                 className="min-w-[120px] h-12"
                             >
-                                <AnimatePresence mode="wait" initial={false}>
-                                    {isSearching ? (
-                                        <motion.div
-                                            key="loading"
-                                            initial={{ opacity: 0, scale: 0.8 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            exit={{ opacity: 0, scale: 0.8 }}
-                                            className="flex items-center gap-2"
-                                        >
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                            <span>Searching</span>
-                                        </motion.div>
-                                    ) : (
-                                        <motion.div
-                                            key="search"
-                                            initial={{ opacity: 0, scale: 0.8 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            exit={{ opacity: 0, scale: 0.8 }}
-                                            className="flex items-center gap-2"
-                                        >
-                                            <Sparkles className="h-4 w-4" />
-                                            <span>Search</span>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
+                                {isSearching ? (
+                                    <span className="flex items-center gap-2">
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        <span>Searching</span>
+                                    </span>
+                                ) : (
+                                    <span className="flex items-center gap-2">
+                                        <Sparkles className="h-4 w-4" />
+                                        <span>Search</span>
+                                    </span>
+                                )}
                             </Button>
                         </div>
                     </div>

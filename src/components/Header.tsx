@@ -34,7 +34,7 @@ export function Header() {
 
             {/* Subtitle */}
             <motion.p
-                className="flex items-center justify-center gap-2 text-lg md:text-xl text-muted-foreground max-w-xl mx-auto"
+                className="flex items-center justify-center gap-2 text-lg md:text-xl text-muted-foreground max-w-xl mx-auto mb-8"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}

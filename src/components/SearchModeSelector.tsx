@@ -67,7 +67,7 @@ export function SearchModeSelector({ value, onChange }: SearchModeSelectorProps)
             </DropdownMenuTrigger>
             <AnimatePresence>
                 {open && (
-                    <DropdownMenuContent align="start" className="w-48" forceMount>
+                    <DropdownMenuContent align="start" side="bottom" className="w-48" forceMount>
                         <motion.div
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}

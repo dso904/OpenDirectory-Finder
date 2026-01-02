@@ -72,7 +72,7 @@ export function FileTypeSelector({ value, onChange }: FileTypeSelectorProps) {
             </DropdownMenuTrigger>
             <AnimatePresence>
                 {open && (
-                    <DropdownMenuContent align="start" className="w-56" forceMount>
+                    <DropdownMenuContent align="start" side="bottom" className="w-56" forceMount>
                         <motion.div
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
