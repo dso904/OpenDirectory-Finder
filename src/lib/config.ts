@@ -111,21 +111,68 @@ export const SEARCH_ENGINES: Record<string, SearchEngine> = {
     },
 };
 
+// Directory listing detection patterns
+export const DIRECTORY_PATTERNS = {
+    primary: 'intitle:"index of"',
+    secondary: '"parent directory"',
+    quality: '"last modified" "size"',
+    apache: 'intitle:"Apache" "Index of"',
+    nginx: 'intitle:"nginx" "Index of"',
+    listing: 'intitle:"directory listing"',
+};
+
+// Expanded spam and fake site exclusions
+export const SPAM_SITES = {
+    // Fake MP3/audio sites
+    audio: [
+        "mp3raid", "mp3toss", "mp3drug", "freemp3cloud", "listen77",
+        "mp3juices", "mp3skull", "mp3clan", "emp3", "tubidy",
+        "beemp3", "mp3direct", "iomoio", "mp3boo", "ytmp3",
+    ],
+    // Fake video/streaming sites
+    video: [
+        "123movies", "fmovies", "putlocker", "solarmovie", "yesmovies",
+        "gomovies", "primewire", "movie4k", "watchseries", "couchtuner",
+        "projectfreetv", "rainierland", "sockshare", "vodlocker", "vidup",
+    ],
+    // Fake software/download sites
+    software: [
+        "softonic", "cnet.download", "download.cnet", "filehippo.fake",
+        "brothersoft", "softpedia.fake", "freewarefiles", "majorgeeks.fake",
+    ],
+    // Link aggregators (no direct downloads)
+    aggregators: [
+        "wallywashis", "downloadmana", "index_of", "index-of",
+        "opendirectory.lol", "filechef", "filesearch", "eyeofsauron",
+    ],
+    // Known malware distributors
+    malware: [
+        "getintopc.sus", "igetintopc", "filecr.sus", "4download.net",
+    ],
+};
+
+// Fake download phrases to exclude
+export const FAKE_DOWNLOAD_PHRASES = [
+    '"click here to download"',
+    '"fast download"',
+    '"premium download"',
+    '"download now free"',
+    '"survey download"',
+];
+
 export const CONFIG: SearchConfig = {
     fileTypes: FILE_TYPES,
     searchEngines: SEARCH_ENGINES,
     excludePatterns: {
-        inurl: ["jsp", "pl", "php", "html", "aspx", "htm", "cf", "shtml", "cgi"],
+        // Dynamic page types that aren't real file listings
+        inurl: ["jsp", "pl", "php", "html", "aspx", "htm", "cf", "shtml", "cgi", "action", "do"],
+        // Flatten all spam sites into one list
         sites: [
-            "listen77",
-            "mp3raid",
-            "mp3toss",
-            "mp3drug",
-            "index_of",
-            "index-of",
-            "wallywashis",
-            "downloadmana",
-            "freemp3cloud",
+            ...SPAM_SITES.audio,
+            ...SPAM_SITES.video,
+            ...SPAM_SITES.software,
+            ...SPAM_SITES.aggregators,
+            ...SPAM_SITES.malware,
         ],
     },
 };

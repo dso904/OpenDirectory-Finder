@@ -1,4 +1,4 @@
-import { CONFIG, DATE_FILTERS } from "./config";
+import { CONFIG, DATE_FILTERS, DIRECTORY_PATTERNS, FAKE_DOWNLOAD_PHRASES } from "./config";
 import type { FileType, SearchEngine, SearchOptions } from "@/types";
 
 /**
@@ -38,40 +38,68 @@ export function validateQuery(query: string): { valid: boolean; error?: string }
 }
 
 /**
- * Build the open directory search query with filters and exclusions
+ * Build file type filter using modern filetype: syntax
+ */
+function buildFileTypeFilter(fileType: FileType): string {
+    if (!fileType.extensions) return "";
+
+    const extensions = fileType.extensions.split("|");
+    // Use first 5 extensions to keep query manageable
+    const topExtensions = extensions.slice(0, 5);
+    return topExtensions.map(ext => `filetype:${ext}`).join(" OR ");
+}
+
+/**
+ * Build the open directory search query with enhanced filters
  */
 export function buildSearchQuery(
     query: string,
     fileType: FileType,
     options?: SearchOptions
 ): string {
-    const parts: string[] = [sanitizeInput(query)];
+    const parts: string[] = [];
+    const mode = options?.mode || "balanced";
 
-    // Add file extension filter if not "all"
+    // 1. User's search query (sanitized)
+    parts.push(sanitizeInput(query));
+
+    // 2. Directory detection patterns (based on mode)
+    if (mode === "precise") {
+        // Precise: Use primary pattern + quality indicators
+        parts.push(DIRECTORY_PATTERNS.primary);
+        parts.push(DIRECTORY_PATTERNS.secondary);
+        parts.push(DIRECTORY_PATTERNS.quality);
+    } else if (mode === "balanced") {
+        // Balanced: Primary + secondary patterns
+        parts.push(DIRECTORY_PATTERNS.primary);
+        parts.push(DIRECTORY_PATTERNS.secondary);
+    } else {
+        // Broad: Just primary pattern for maximum recall
+        parts.push(DIRECTORY_PATTERNS.primary);
+    }
+
+    // 3. File type filters using modern filetype: syntax
     if (fileType.extensions) {
-        parts.push(`+(${fileType.extensions})`);
+        const fileTypeFilter = buildFileTypeFilter(fileType);
+        if (fileTypeFilter) {
+            parts.push(`(${fileTypeFilter})`);
+        }
     }
 
-    // Add "index of" pattern for directory listings
-    parts.push('intitle:"index of"');
-
-    // Add "parent directory" for better results (based on search mode)
-    if (!options || options.mode !== "broad") {
-        parts.push('"parent directory"');
-    }
-
-    // Exclude dynamic page types
+    // 4. Exclude dynamic page types
     const excludeInurl = CONFIG.excludePatterns.inurl.join("|");
     parts.push(`-inurl:(${excludeInurl})`);
 
-    // Exclude known spam/fake sites
-    const excludeSites = CONFIG.excludePatterns.sites.join("|");
-    parts.push(`-inurl:(${excludeSites})`);
+    // 5. Exclude spam sites (limit to first 20 to keep query size manageable)
+    const spamSites = CONFIG.excludePatterns.sites.slice(0, 20);
+    parts.push(`-inurl:(${spamSites.join("|")})`);
 
-    // Add stricter filters for precise mode
-    if (options?.mode === "precise") {
-        parts.push('"last modified"');
-        parts.push('"size"');
+    // 6. Exclude fake download phrases (for precise/balanced modes)
+    if (mode !== "broad") {
+        // Add first 2 fake phrases to exclude scam pages
+        FAKE_DOWNLOAD_PHRASES.slice(0, 2).forEach(phrase => {
+            parts.push(`-${phrase}`);
+        });
     }
 
     return parts.join(" ");

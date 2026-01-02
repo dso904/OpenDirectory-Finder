@@ -8,7 +8,6 @@ import {
     Globe,
     FolderSearch,
     Layers,
-    Check,
 } from "lucide-react";
 import {
     DropdownMenu,

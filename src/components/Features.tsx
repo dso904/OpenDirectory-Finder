@@ -5,7 +5,6 @@ import {
     Music,
     Package,
     Image,
-    Subtitles,
     Globe,
 } from "lucide-react";
 
